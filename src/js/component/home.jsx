@@ -5,13 +5,39 @@ const Home = () => {
     const [newTodo, setNewTodo] = useState("");
     const user_name = "Pablo_Teran";
 
-    const fetchUsers = async () => {
-        const response = await fetch(`https://playground.4geeks.com/todo/users/${user_name}`);
+    // Crear usuario si no existe
+    const createUser = async () => {
+        const response = await fetch(`https://playground.4geeks.com/todo/users/${user_name}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name: user_name })
+        });
+
         if (response.ok) {
-            const data = await response.json();
-            setTodos(data.todos || []); 
+            console.log(`Usuario '${user_name}' creado exitosamente.`);
         } else {
-            console.error("Error al cargar las tareas del usuario.");
+            console.error("Error al crear el usuario.");
+        }
+    };
+
+    // Cargar tareas del usuario
+    const fetchUsers = async () => {
+        try {
+            const response = await fetch(`https://playground.4geeks.com/todo/users/${user_name}`);
+            if (response.ok) {
+                const data = await response.json();
+                setTodos(data.todos || []);
+            } else if (response.status === 404) {
+                console.warn("El usuario no existe. Creando el usuario...");
+                await createUser(); 
+                setTodos([]); 
+            } else {
+                console.error("Error desconocido al cargar las tareas del usuario.");
+            }
+        } catch (error) {
+            console.error("Error al realizar la solicitud:", error);
         }
     };
 
